@@ -23,3 +23,6 @@ dist/
 # CGCookie updater runtime staging / state
 asset_wrapper/*_updater/
 asset_wrapper/updater_status.json
+
+# scratch
+_commitmsg.txt

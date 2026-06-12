@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.2 — 2026-06-12
+
+### Fixed
+- Updater now installs the **attached release .zip** instead of the GitHub
+  source zipball. Because the addon lives in the `asset_wrapper/` subfolder of
+  the repo, the zipball was not directly installable ("No __init__ file found
+  in new source"); the attached zip built by `build_release.py` installs
+  cleanly. Verified end-to-end (0.5.0 → 0.5.2 install) headless.
+
 ## 0.5.1 — 2026-06-12
 
 ### Changed

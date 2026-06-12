@@ -1,13 +1,13 @@
 schema_version = "1.0.0"
 
 id = "asset_wrapper"
-version = "0.5.1"
+version = "0.5.2"
 name = "Asset Wrapper"
 tagline = "Wrap any selection or collection into a linked asset in one click"
 maintainer = "Blue Moon Virtual <info@bm-3d.de>"
 type = "add-on"
 
-website = "https://github.com/bluemoonvirtual/asset-wrapper"
+website = "https://github.com/Blue-Moon-Virtual/asset-wrapper"
 
 tags = ["Object", "Pipeline", "Import-Export"]
 

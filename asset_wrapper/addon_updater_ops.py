@@ -1297,9 +1297,14 @@ def select_link_function(self, tag):
     # -- Default, universal case (and is the only option for GitLab/Bitbucket)
     link = tag["zipball_url"]
 
-    # -- Example: select the first (or only) asset instead source code --
-    # if "assets" in tag and "browser_download_url" in tag["assets"][0]:
-    # 	link = tag["assets"][0]["browser_download_url"]
+    # Asset Wrapper lives in the `asset_wrapper/` subfolder of the repo, so the
+    # source zipball is not directly installable. Prefer the attached,
+    # correctly-structured release .zip (built by build_release.py).
+    for asset in tag.get("assets", []) or []:
+        name = (asset.get("name") or "").lower()
+        if name.endswith(".zip") and asset.get("browser_download_url"):
+            link = asset["browser_download_url"]
+            break
 
     # -- Example: select asset based on OS, where multiple builds exist --
     # # not tested/no error checking, modify to fit your own needs!
@@ -1456,6 +1461,7 @@ def register(bl_info):
     # Note 2: Using this option will also display (and filter by) the release
     # name instead of the tag name, bear this in mind given the
     # skip_tag_function filtering above.
+
 
     # Populate if using "include_branches" option above.
     # Note: updater.include_branch_list defaults to ['master'] branch if set to
