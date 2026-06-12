@@ -1,13 +1,10 @@
-# Kept as a module-level constant so register() never has to reference the
-# `bl_info` global — Blender's extension loader strips `bl_info`, which would
-# otherwise raise "name 'bl_info' is not defined" if the add-on is ever loaded
-# as an extension.
-ADDON_VERSION = (0, 5, 3)
-
+# Asset Wrapper ships as a classic (legacy) Blender add-on. Blender lists
+# add-ons by PARSING this bl_info dict without running the file, so every value
+# here must stay a plain literal — no constants, no expressions.
 bl_info = {
     "name": "Asset Wrapper",
     "author": "Blue Moon Virtual",
-    "version": ADDON_VERSION,
+    "version": (0, 5, 4),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Asset Wrapper",
     "description": (
@@ -45,8 +42,7 @@ def register():
     import bpy
 
     # Register the CGCookie updater first so its operators/properties exist.
-    # Pass an explicit version dict instead of `bl_info` (see ADDON_VERSION).
-    addon_updater_ops.register({"version": ADDON_VERSION})
+    addon_updater_ops.register(bl_info)
 
     for cls in classes:
         bpy.utils.register_class(cls)

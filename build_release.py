@@ -25,9 +25,9 @@ def read_version():
     init = open(
         os.path.join(PACKAGE_DIR, "__init__.py"), encoding="utf-8"
     ).read()
-    match = re.search(r"ADDON_VERSION\s*=\s*\(([^)]*)\)", init)
+    match = re.search(r'"version"\s*:\s*\(([^)]*)\)', init)
     if not match:
-        raise SystemExit("ADDON_VERSION not found in __init__.py")
+        raise SystemExit('"version" tuple not found in bl_info')
     return ".".join(part.strip() for part in match.group(1).split(","))
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.4 — 2026-06-12
+
+### Fixed
+- **Add-on installed but did not appear in Preferences.** Blender builds the
+  Add-ons list by parsing `bl_info` *without running the file* (AST), so the
+  `"version": ADDON_VERSION` introduced in 0.5.3 was a non-literal it could not
+  read (`malformed node or string`), and the add-on was skipped from the list.
+  `bl_info` values are all plain literals again, and the version lives only in
+  `bl_info` (single source of truth). Verified via `addon_utils.modules()` —
+  the same discovery path the Preferences UI uses.
+- Dropped `blender_manifest.toml` entirely: Asset Wrapper is a classic legacy
+  add-on (works with the in-app updater and installs everywhere). An extension
+  build, if ever needed for extensions.blender.org, is a separate concern.
+
 ## 0.5.3 — 2026-06-12
 
 ### Fixed
