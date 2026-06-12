@@ -1,0 +1,10 @@
+v0.5.1: adopt CGCookie blender-addon-updater + prepare public release
+
+- Vendored addon_updater.py + addon_updater_ops.py (GPL), configured for
+  GitHub releases of Blue-Moon-Virtual/asset-wrapper with use_releases.
+- Wired into register()/preferences/sidebar; removed the in-house updater.
+- Preferences expose check-now, auto-check intervals, and install/revert;
+  the N-panel shows an "update ready" notice when a newer release exists.
+- Keep LAUNCH_PLAN.md local only (internal strategy, not for public repo).
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1 — 2026-06-12
+
+### Changed
+- Replaced the in-house updater with the established **CGCookie
+  blender-addon-updater**, configured for GitHub releases of
+  `Blue-Moon-Virtual/asset-wrapper`. Preferences now expose check-now,
+  auto-check intervals, and install/revert; the sidebar shows an
+  "update ready" notice when a newer release is found.
+- First public release on GitHub.
+
 ## 0.5.0 — 2026-06-12
 
 ### Changed

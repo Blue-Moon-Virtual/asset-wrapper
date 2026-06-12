@@ -1,19 +1,19 @@
 bl_info = {
     "name": "Asset Wrapper",
     "author": "Blue Moon Virtual",
-    "version": (0, 5, 0),
+    "version": (0, 5, 1),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Asset Wrapper",
     "description": (
         "Wrap any selection or collection into a linked collection asset, "
         "with rendered thumbnails and a per-project asset library."
     ),
-    "doc_url": "https://github.com/bluemoonvirtual/asset-wrapper",
-    "tracker_url": "https://github.com/bluemoonvirtual/asset-wrapper/issues",
+    "doc_url": "https://github.com/Blue-Moon-Virtual/asset-wrapper",
+    "tracker_url": "https://github.com/Blue-Moon-Virtual/asset-wrapper/issues",
     "category": "Object",
 }
 
-from . import asset_io, operators, preferences, properties, ui, updater
+from . import addon_updater_ops, asset_io, operators, preferences, properties, ui
 
 
 classes = (
@@ -28,8 +28,6 @@ classes = (
     operators.AW_OT_reset_folder,
     operators.AW_OT_disconnect_library,
     operators.AW_OT_delete_library,
-    updater.AW_OT_check_for_updates,
-    updater.AW_OT_install_update,
     ui.AW_UL_assets,
     ui.AW_MT_library,
     ui.AW_PT_main,
@@ -39,6 +37,9 @@ classes = (
 
 def register():
     import bpy
+
+    # Register the CGCookie updater first so its operators/properties exist.
+    addon_updater_ops.register(bl_info)
 
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -53,13 +54,9 @@ def register():
     # Pick up the file that is already open when the addon gets enabled.
     bpy.app.timers.register(asset_io.autodetect_project_library, first_interval=0.5)
 
-    updater.on_register()
-
 
 def unregister():
     import bpy
-
-    updater.on_unregister()
 
     if asset_io.autodetect_project_library_handler in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(asset_io.autodetect_project_library_handler)
@@ -68,3 +65,5 @@ def unregister():
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
+
+    addon_updater_ops.unregister()

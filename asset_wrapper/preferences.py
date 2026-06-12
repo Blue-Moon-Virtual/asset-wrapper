@@ -1,12 +1,13 @@
 import bpy
 
-from . import updater
+from . import addon_updater_ops
 
 
+@addon_updater_ops.make_annotations
 class AssetWrapperPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
-    library_name_prefix: bpy.props.StringProperty(
+    library_name_prefix = bpy.props.StringProperty(
         name="Library Name Prefix",
         description=(
             "Prefix for auto-registered project asset libraries, "
@@ -15,7 +16,7 @@ class AssetWrapperPreferences(bpy.types.AddonPreferences):
         default="",
     )
 
-    preview_size: bpy.props.EnumProperty(
+    preview_size = bpy.props.EnumProperty(
         name="Thumbnail Size",
         description="Resolution of the rendered asset thumbnails",
         items=(
@@ -26,7 +27,7 @@ class AssetWrapperPreferences(bpy.types.AddonPreferences):
         default="256",
     )
 
-    pack_textures: bpy.props.BoolProperty(
+    pack_textures = bpy.props.BoolProperty(
         name="Pack Textures into Asset Files",
         description=(
             "Embed external image textures inside each asset .blend so assets "
@@ -36,16 +37,38 @@ class AssetWrapperPreferences(bpy.types.AddonPreferences):
         default=True,
     )
 
-    update_repository: bpy.props.StringProperty(
-        name="Repository",
-        description="GitHub repository to check for updates, as owner/name",
-        default="bluemoonvirtual/asset-wrapper",
-    )
-
-    check_on_startup: bpy.props.BoolProperty(
-        name="Check for Updates on Startup",
-        description="Quietly check for a newer release when Blender starts",
+    # --- Properties required by the CGCookie addon updater ---
+    auto_check_update = bpy.props.BoolProperty(
+        name="Auto-check for Update",
+        description="If enabled, auto-check for updates using an interval",
         default=False,
+    )
+    updater_interval_months = bpy.props.IntProperty(
+        name="Months",
+        description="Number of months between checking for updates",
+        default=0,
+        min=0,
+    )
+    updater_interval_days = bpy.props.IntProperty(
+        name="Days",
+        description="Number of days between checking for updates",
+        default=7,
+        min=0,
+        max=31,
+    )
+    updater_interval_hours = bpy.props.IntProperty(
+        name="Hours",
+        description="Number of hours between checking for updates",
+        default=0,
+        min=0,
+        max=23,
+    )
+    updater_interval_minutes = bpy.props.IntProperty(
+        name="Minutes",
+        description="Number of minutes between checking for updates",
+        default=0,
+        min=0,
+        max=59,
     )
 
     def draw(self, context):
@@ -59,7 +82,8 @@ class AssetWrapperPreferences(bpy.types.AddonPreferences):
         col.prop(self, "pack_textures")
 
         layout.separator()
-        updater.draw(layout, self)
+        # Updater settings box (check now, auto-check, intervals, install).
+        addon_updater_ops.update_settings_ui(self, context)
 
         layout.separator()
         footer = layout.box().row()
@@ -71,4 +95,4 @@ class AssetWrapperPreferences(bpy.types.AddonPreferences):
         ).url = "https://www.bm-3d.de"
         links.operator(
             "wm.url_open", text="Report an Issue", icon="HELP"
-        ).url = "https://github.com/bluemoonvirtual/asset-wrapper/issues"
+        ).url = "https://github.com/Blue-Moon-Virtual/asset-wrapper/issues"

@@ -13,6 +13,13 @@ asset-master-test.blend
 asset_library/
 _test/
 
+# Internal business strategy — kept local, not for the public repo
+LAUNCH_PLAN.md
+
 # Release builds
 dist/
 *.zip
+
+# CGCookie updater runtime staging / state
+asset_wrapper/*_updater/
+asset_wrapper/updater_status.json

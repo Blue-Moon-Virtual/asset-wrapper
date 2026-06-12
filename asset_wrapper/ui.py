@@ -1,6 +1,6 @@
 import bpy
 
-from . import asset_io
+from . import addon_updater_ops, asset_io
 
 
 class AW_UL_assets(bpy.types.UIList):
@@ -77,6 +77,9 @@ class AW_PT_main(bpy.types.Panel):
 
         if context.mode != "OBJECT":
             layout.label(text="Object Mode required", icon="INFO")
+
+        # Shows a one-click "update ready" box only when an update was found.
+        addon_updater_ops.update_notice_box_ui(self, context)
 
 
 class AW_PT_library(bpy.types.Panel):
