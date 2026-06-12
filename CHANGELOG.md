@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.3 — 2026-06-12
+
+### Fixed
+- **Manual install failed on Blender 4.2+/5.x** with `name 'bl_info' is not
+  defined`. The release zip shipped `blender_manifest.toml`, so Blender treated
+  it as an extension — and extensions strip `bl_info`, which `register()`
+  referenced. The distributed zip is now a plain legacy add-on (no manifest),
+  and `register()` no longer touches `bl_info` (uses `ADDON_VERSION`). Verified
+  installing cleanly via Blender's own install operator on a fresh profile.
+
+### Changed
+- Rewrote the README: concise, clearer description, less studio-specific.
+
 ## 0.5.2 — 2026-06-12
 
 ### Fixed

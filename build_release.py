@@ -15,17 +15,20 @@ PACKAGE = "asset_wrapper"
 PACKAGE_DIR = os.path.join(ROOT, PACKAGE)
 DIST = os.path.join(ROOT, "dist")
 
-INCLUDE_EXTENSIONS = {".py", ".toml", ".md"}
+# Legacy add-on zip: only Python files. blender_manifest.toml is intentionally
+# excluded so Blender's "Install from Disk" uses the legacy add-on path rather
+# than the extension path (extensions strip bl_info and break the updater).
+INCLUDE_EXTENSIONS = {".py"}
 
 
 def read_version():
-    manifest = open(
-        os.path.join(PACKAGE_DIR, "blender_manifest.toml"), encoding="utf-8"
+    init = open(
+        os.path.join(PACKAGE_DIR, "__init__.py"), encoding="utf-8"
     ).read()
-    match = re.search(r'^version\s*=\s*"([^"]+)"', manifest, re.MULTILINE)
+    match = re.search(r"ADDON_VERSION\s*=\s*\(([^)]*)\)", init)
     if not match:
-        raise SystemExit("version not found in blender_manifest.toml")
-    return match.group(1)
+        raise SystemExit("ADDON_VERSION not found in __init__.py")
+    return ".".join(part.strip() for part in match.group(1).split(","))
 
 
 def main():

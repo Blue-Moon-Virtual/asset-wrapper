@@ -1,102 +1,54 @@
 # Asset Wrapper
 
-**Wrap any selection or collection into a linked collection asset — in one click.**
+Turn anything in your scene into a linked, reusable collection asset — one click, thumbnail included.
 
-Made by [Blue Moon Virtual](https://www.bm-3d.de) for real production work on
-furnished interior scenes, where the same furniture groups get reused across
-dozens of project files shared over a synced drive.
+Blender's Asset Browser is great at *placing* assets and clumsy at *making* them from scenes you've already built. Asset Wrapper closes that gap: pick objects or a collection, click once, and they become a `.blend` collection asset with a rendered thumbnail — while the originals in your scene are swapped for a linked instance. Your file gets lighter, the asset is reusable everywhere, and nothing moves a millimetre.
 
----
+## How it works
 
-## Why
-
-Blender's Asset Browser is great — but turning *existing scene content* into
-clean, linked, re-usable collection assets is a chore:
-
-- mark a collection as an asset, and it still lives inside your working file
-- write it to a separate file by hand, and you lose the instance in your scene
-- existing tools are either too complicated or don't handle **collection
-  instances** properly
-
-Asset Wrapper does the whole round trip in one click:
-
-1. **Select** objects (or just one object of a group) and press
-   **Selection** or **Collection**.
-2. The objects are written to their own `<Name>.asset.blend` inside an
-   `asset_library/` folder **next to your project file** — so the assets
-   travel with the project on Dropbox/Google Drive/NAS.
-3. The originals in your scene are replaced by a **linked collection
-   instance** — visually nothing changes, but your file gets lighter and the
-   asset is reusable everywhere.
-4. A **rendered thumbnail** is generated automatically and the project library
-   is **auto-registered** in Blender's Asset Browser. Open the project on any
-   machine and the assets are just *there*.
+1. Select some objects (or just one object of a collection).
+2. Click **Selection** or **Collection** in the sidebar.
+3. Asset Wrapper writes a `<name>.asset.blend` into a per-project `asset_library/` folder, registers it with the Asset Browser, renders a thumbnail, and replaces your originals with a linked instance. The originals are tucked into a hidden backup collection — never deleted.
 
 ## Features
 
-- **Selection → Asset** and **Collection → Asset** buttons
-- **Pivot control** — bottom-center of the bounding box (assets "stand on the
-  floor"), or exactly at the **3D cursor**
-- **Dependency-safe** — objects referenced by Curve / Mirror / Boolean /
-  Lattice / Armature modifiers, constraints, hooks and curve bevels are
-  detected, copied along, and remapped so the asset never deforms wrong
-- **Real rendered thumbnails** (Workbench studio lighting, transparent
-  background, 128–512 px)
-- **Texture packing** (optional) — assets keep working on every machine
-- **Replace existing** — re-export an asset under the same name and every
-  placed instance updates
-- **Asset Library panel** — browse, refresh, open, and delete the asset files
-  of the current project without leaving the viewport
-- **Built-in updater** — check GitHub for new releases and one-click install
-  from the add-on preferences
-- **Safe by design** — originals are kept in a hidden backup collection until
-  you decide to purge them
+- **Selection → asset** and **collection → asset**, one click each
+- **Pivot** at the bounding-box floor or exactly on the 3D cursor
+- **Dependency-safe** — curve / mirror / boolean / lattice / armature targets, constraints, hooks and curve bevels travel with the asset, so it never comes in deformed
+- **Rendered thumbnails**, not flat icons
+- **Per-project library** that travels with the `.blend` (great over shared drives)
+- **Texture packing** (optional) for fully portable assets
+- **Re-wrap** under the same name to update every placed instance at once
+- **In-viewport library browser** — list, open, and clean up project assets
+- **One-click updates** from the add-on preferences
 
-## Installation
+## Install
 
-**Blender 4.2+**
+Blender 4.2+.
 
-1. Download the latest release `.zip`
-2. `Edit → Preferences → Add-ons → Install from Disk…`
-3. Pick the zip, enable **Asset Wrapper**
+1. Download **`asset_wrapper-x.y.z.zip`** from the [latest release](https://github.com/Blue-Moon-Virtual/asset-wrapper/releases/latest) — the attached zip, **not** the green "Source code" archive.
+2. `Edit → Preferences → Add-ons → Install from Disk…` and pick the zip.
+3. Enable **Asset Wrapper**. It appears in the sidebar (`N`) under the **Asset Wrapper** tab.
 
 ## Usage
 
-Open the **N-panel → Asset Wrapper** tab:
-
 | Control | What it does |
 | --- | --- |
-| **Selection** | Wraps the selected objects into one collection asset |
-| **Collection** | Wraps the whole collection of the active object (or the active Outliner collection) |
-| **3D Cursor as Pivot** | Pivot at the cursor instead of bounding-box bottom center |
-| **Asset Library** subpanel | Browse the project's assets; the ▾ menu holds folder & library actions |
+| **Selection** | Wrap the selected objects into one collection asset |
+| **Collection** | Wrap the whole collection of the active object (or the active Outliner collection) |
+| **3D Cursor as Pivot** | Use the cursor as the asset pivot instead of the bounding-box floor |
+| **Asset Library** ▾ menu | Set a custom folder, open it, refresh, disconnect, or delete |
 
-Preferences (`Edit → Preferences → Add-ons`):
+Preferences let you set a library-name prefix, thumbnail resolution (128 / 256 / 512), texture packing, and update checking.
 
-- **Library Name Prefix** — e.g. `BM - ` to group your studio's libraries
-- **Thumbnail Size** — 128 / 256 / 512 px
-- **Pack Textures** — embed images into asset files (portable, but larger)
-- **Updates** — check for and install new releases; set your fork's repository
-  and optionally check on startup
+## Updates
 
-## FAQ
-
-**Where do the asset files go?**
-Into `asset_library/` next to your `.blend` (configurable via the library
-menu). The folder is auto-registered as an asset library named after the
-project.
-
-**What happens to my original objects?**
-They are moved to a hidden `Asset Wrapper Backups` collection. Delete it
-whenever you're confident.
-
-**Does it work with curves, modifiers, armatures inside groups?**
-Yes — referenced helper objects are included and remapped automatically.
+`Edit → Preferences → Add-ons → Asset Wrapper → Check for Updates`. Updates download and install in place; restart Blender to finish.
 
 ## License
 
-GPL-3.0-or-later — like Blender itself. See [LICENSE](LICENSE).
+GPL-3.0-or-later — see [LICENSE](LICENSE). Built on the [CGCookie blender-addon-updater](https://github.com/CGCookie/blender-addon-updater).
 
 ---
 
-© Blue Moon Virtual — [bm-3d.de](https://www.bm-3d.de)
+An open-source Blender add-on by [Blue Moon Virtual](https://www.bm-3d.de).
