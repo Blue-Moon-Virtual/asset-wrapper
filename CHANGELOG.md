@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.0 — 2026-06-12
+
+### Changed
+- **Renamed to "Asset Wrapper"** (was "Asset Master Collectionize"). The
+  Python package, panels, operators, and the auto-created backup collection
+  use the new name. Backup collections from older versions are still
+  recognized.
+
+### Added
+- **Built-in updater** in the add-on preferences: checks GitHub releases for a
+  newer version and installs it in one click (threaded, non-blocking).
+  Configurable repository and optional check-on-startup.
+- Library actions consolidated into a single dropdown menu, plus a
+  "Set Custom Folder" / "Use Default Folder" pair.
+
+### UI
+- Minimalist redesign: the main panel is just the two wrap buttons + pivot
+  toggle; the Asset Library subpanel drops the stacked status lines and
+  management buttons in favor of one action menu and the asset list.
+
 ## 0.4.0 — 2026-06-11
 
 ### Fixed

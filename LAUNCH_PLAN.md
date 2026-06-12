@@ -1,6 +1,6 @@
-# Asset Master — Collectionize: Launch & Monetization Plan
+# Asset Wrapper: Launch & Monetization Plan
 
-*Blue Moon Virtual · prepared 2026-06-11*
+*Blue Moon Virtual · prepared 2026-06-11, updated 2026-06-12*
 
 ## 1. The legal reality first (it shapes everything)
 
@@ -52,9 +52,9 @@ everywhere.
 
 ## 4. Pre-launch checklist (1–2 weeks of evenings)
 
-1. **Rename check** — "Asset Master" is generic; search Superhive/Gumroad for
-   collisions before printing the name on artwork. Alternative candidates:
-   *Collectionize*, *Asset Rounduo*, keep it if clear.
+1. **Name check** — "Asset Wrapper" is the chosen name; do a quick
+   Superhive/Gumroad/BlenderArtists search for collisions before printing it
+   on artwork, and grab the matching Gumroad handle + GitHub org.
 2. **GitHub org** — publish repo under a `bluemoonvirtual` org. Enable Issues
    and Discussions. Add 2–3 GIFs to the README (the before/after of a broken
    vs. correct curve-modifier asset is *the* money shot).
@@ -95,7 +95,7 @@ everywhere.
 - Collect the top 3 feature requests; ship a 1.1 within 4–6 weeks (momentum
   + "actively maintained" badge effect).
 - Roadmap candidates already visible from the codebase: asset catalogs
-  support, batch-collectionize multiple collections, "unpack/edit asset and
+  support, batch-wrap multiple collections, "unpack/edit asset and
   re-export" round-trip, material-asset mode.
 - Track: downloads (extensions.blender.org dashboard), Gumroad conversion,
   Superhive sales. If Superhive ≫ Gumroad after 3 months, consider making

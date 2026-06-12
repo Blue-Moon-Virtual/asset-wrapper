@@ -1,13 +1,13 @@
 schema_version = "1.0.0"
 
-id = "asset_master_collectionize"
-version = "0.4.0"
-name = "Asset Master — Collectionize"
-tagline = "Turn selections or collections into linked assets in one click"
+id = "asset_wrapper"
+version = "0.5.0"
+name = "Asset Wrapper"
+tagline = "Wrap any selection or collection into a linked asset in one click"
 maintainer = "Blue Moon Virtual <info@bm-3d.de>"
 type = "add-on"
 
-website = "https://github.com/bluemoonvirtual/asset-master-collectionize"
+website = "https://github.com/bluemoonvirtual/asset-wrapper"
 
 tags = ["Object", "Pipeline", "Import-Export"]
 
@@ -17,3 +17,4 @@ license = ["SPDX:GPL-3.0-or-later"]
 
 [permissions]
 files = "Writes asset .blend files into the project's asset library folder"
+network = "Checks GitHub for add-on updates when you ask it to"

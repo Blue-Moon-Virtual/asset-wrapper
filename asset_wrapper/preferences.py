@@ -1,7 +1,9 @@
 import bpy
 
+from . import updater
 
-class AMCollectionizePreferences(bpy.types.AddonPreferences):
+
+class AssetWrapperPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
     library_name_prefix: bpy.props.StringProperty(
@@ -34,6 +36,18 @@ class AMCollectionizePreferences(bpy.types.AddonPreferences):
         default=True,
     )
 
+    update_repository: bpy.props.StringProperty(
+        name="Repository",
+        description="GitHub repository to check for updates, as owner/name",
+        default="bluemoonvirtual/asset-wrapper",
+    )
+
+    check_on_startup: bpy.props.BoolProperty(
+        name="Check for Updates on Startup",
+        description="Quietly check for a newer release when Blender starts",
+        default=False,
+    )
+
     def draw(self, context):
         layout = self.layout
 
@@ -45,17 +59,16 @@ class AMCollectionizePreferences(bpy.types.AddonPreferences):
         col.prop(self, "pack_textures")
 
         layout.separator()
-        box = layout.box()
-        row = box.row()
-        row.label(text="Asset Master — Collectionize", icon="OUTLINER_COLLECTION")
-        sub = row.row()
-        sub.alignment = "RIGHT"
-        sub.label(text="made by Blue Moon Virtual")
+        updater.draw(layout, self)
 
-        links = box.row(align=True)
+        layout.separator()
+        footer = layout.box().row()
+        footer.label(text="Asset Wrapper", icon="OUTLINER_OB_GROUP_INSTANCE")
+        links = footer.row(align=True)
+        links.alignment = "RIGHT"
         links.operator(
-            "wm.url_open", text="Website", icon="URL"
+            "wm.url_open", text="Blue Moon Virtual", icon="URL"
         ).url = "https://www.bm-3d.de"
         links.operator(
             "wm.url_open", text="Report an Issue", icon="HELP"
-        ).url = "https://github.com/bluemoonvirtual/asset-master-collectionize/issues"
+        ).url = "https://github.com/bluemoonvirtual/asset-wrapper/issues"

@@ -11,7 +11,7 @@ import re
 import zipfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-PACKAGE = "asset_master_collectionize"
+PACKAGE = "asset_wrapper"
 PACKAGE_DIR = os.path.join(ROOT, PACKAGE)
 DIST = os.path.join(ROOT, "dist")
 

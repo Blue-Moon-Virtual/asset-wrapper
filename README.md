@@ -1,6 +1,6 @@
-# Asset Master — Collectionize
+# Asset Wrapper
 
-**Turn any selection or collection into a linked collection asset — in one click.**
+**Wrap any selection or collection into a linked collection asset — in one click.**
 
 Made by [Blue Moon Virtual](https://www.bm-3d.de) for real production work on
 furnished interior scenes, where the same furniture groups get reused across
@@ -18,7 +18,7 @@ clean, linked, re-usable collection assets is a chore:
 - existing tools are either too complicated or don't handle **collection
   instances** properly
 
-Collectionize does the whole round trip in one click:
+Asset Wrapper does the whole round trip in one click:
 
 1. **Select** objects (or just one object of a group) and press
    **Selection** or **Collection**.
@@ -47,6 +47,8 @@ Collectionize does the whole round trip in one click:
   placed instance updates
 - **Asset Library panel** — browse, refresh, open, and delete the asset files
   of the current project without leaving the viewport
+- **Built-in updater** — check GitHub for new releases and one-click install
+  from the add-on preferences
 - **Safe by design** — originals are kept in a hidden backup collection until
   you decide to purge them
 
@@ -56,33 +58,36 @@ Collectionize does the whole round trip in one click:
 
 1. Download the latest release `.zip`
 2. `Edit → Preferences → Add-ons → Install from Disk…`
-3. Pick the zip, enable **Asset Master Collectionize**
+3. Pick the zip, enable **Asset Wrapper**
 
 ## Usage
 
-Open the **N-panel → Asset Master** tab:
+Open the **N-panel → Asset Wrapper** tab:
 
 | Control | What it does |
 | --- | --- |
-| **Selection** | Converts the selected objects into one collection asset |
-| **Collection** | Converts the whole collection of the active object (or the active Outliner collection) |
+| **Selection** | Wraps the selected objects into one collection asset |
+| **Collection** | Wraps the whole collection of the active object (or the active Outliner collection) |
 | **3D Cursor as Pivot** | Pivot at the cursor instead of bounding-box bottom center |
-| **Asset Library** subpanel | Manage the project's asset folder and files |
+| **Asset Library** subpanel | Browse the project's assets; the ▾ menu holds folder & library actions |
 
 Preferences (`Edit → Preferences → Add-ons`):
 
 - **Library Name Prefix** — e.g. `BM - ` to group your studio's libraries
 - **Thumbnail Size** — 128 / 256 / 512 px
 - **Pack Textures** — embed images into asset files (portable, but larger)
+- **Updates** — check for and install new releases; set your fork's repository
+  and optionally check on startup
 
 ## FAQ
 
 **Where do the asset files go?**
-Into `asset_library/` next to your `.blend` (configurable). The folder is
-auto-registered as an asset library named after the project.
+Into `asset_library/` next to your `.blend` (configurable via the library
+menu). The folder is auto-registered as an asset library named after the
+project.
 
 **What happens to my original objects?**
-They are moved to a hidden `AM_Collectionize_Backups` collection. Delete it
+They are moved to a hidden `Asset Wrapper Backups` collection. Delete it
 whenever you're confident.
 
 **Does it work with curves, modifiers, armatures inside groups?**

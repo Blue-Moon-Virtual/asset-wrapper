@@ -5,8 +5,8 @@ import bpy
 from . import asset_io
 
 
-def refresh_asset_library_items(context):
-    settings = context.scene.am_collectionize
+def refresh_library_items(context):
+    settings = context.scene.asset_wrapper
     settings.asset_library_items.clear()
 
     directory = asset_io.asset_library_dir_from_settings(context)
@@ -29,8 +29,8 @@ def refresh_asset_library_items(context):
     return count
 
 
-def active_asset_library_item(context):
-    settings = context.scene.am_collectionize
+def active_library_item(context):
+    settings = context.scene.asset_wrapper
     index = settings.active_asset_library_item_index
 
     if index < 0 or index >= len(settings.asset_library_items):
@@ -39,10 +39,10 @@ def active_asset_library_item(context):
     return settings.asset_library_items[index]
 
 
-class AM_OT_collectionize(bpy.types.Operator):
-    bl_idname = "asset_master.collectionize"
-    bl_label = "Collectionize"
-    bl_description = "Convert objects into a linked collection asset stored in the project asset library"
+class AW_OT_wrap(bpy.types.Operator):
+    bl_idname = "asset_wrapper.wrap"
+    bl_label = "Wrap into Asset"
+    bl_description = "Wrap objects into a linked collection asset stored in the project asset library"
     bl_options = {"REGISTER", "UNDO"}
 
     source: bpy.props.EnumProperty(
@@ -101,12 +101,12 @@ class AM_OT_collectionize(bpy.types.Operator):
         layout = self.layout
         layout.prop(self, "asset_name")
         layout.prop(self, "replace_existing")
-        layout.prop(context.scene.am_collectionize, "use_cursor_pivot")
+        layout.prop(context.scene.asset_wrapper, "use_cursor_pivot")
 
     def execute(self, context):
         try:
             objects, source_collection = self._gather_source(context)
-            settings = context.scene.am_collectionize
+            settings = context.scene.asset_wrapper
             context.view_layer.update()
             source_world_matrices = [obj.matrix_world.copy() for obj in objects]
 
@@ -189,7 +189,7 @@ class AM_OT_collectionize(bpy.types.Operator):
                 pivot_matrix,
                 instance_parent,
             )
-            alignment = asset_io.align_collection_instance_to_snapshot(
+            asset_io.align_collection_instance_to_snapshot(
                 context,
                 instance,
                 objects,
@@ -203,17 +203,14 @@ class AM_OT_collectionize(bpy.types.Operator):
 
             context.view_layer.objects.active = instance
             instance.select_set(True)
-            refresh_asset_library_items(context)
+            refresh_library_items(context)
             asset_io.refresh_asset_browsers(context)
 
         except Exception as exc:
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
 
-        message = (
-            f"Created collection asset: {asset_name} "
-            f"({os.path.basename(filepath)})"
-        )
+        message = f"Wrapped asset: {asset_name} ({os.path.basename(filepath)})"
         if extra_dependencies:
             message += (
                 f" — included {len(extra_dependencies)} referenced helper "
@@ -234,7 +231,7 @@ class AM_OT_collectionize(bpy.types.Operator):
 
         objects = list(context.selected_objects)
         if not objects:
-            raise ValueError("Select at least one object to collectionize.")
+            raise ValueError("Select at least one object to wrap.")
         return objects, None
 
     def _resolve_source_collection(self, context):
@@ -262,22 +259,22 @@ class AM_OT_collectionize(bpy.types.Operator):
         )
 
 
-class AM_OT_refresh_asset_library(bpy.types.Operator):
-    bl_idname = "asset_master.refresh_asset_library"
-    bl_label = "Refresh Asset Library"
+class AW_OT_refresh_library(bpy.types.Operator):
+    bl_idname = "asset_wrapper.refresh_library"
+    bl_label = "Refresh Library"
     bl_description = "Scan the configured asset library folder"
     bl_options = {"REGISTER"}
 
     def execute(self, context):
-        count = refresh_asset_library_items(context)
+        count = refresh_library_items(context)
         self.report({"INFO"}, f"Found {count} asset file(s).")
         return {"FINISHED"}
 
 
-class AM_OT_open_asset_library_folder(bpy.types.Operator):
-    bl_idname = "asset_master.open_asset_library_folder"
+class AW_OT_open_library_folder(bpy.types.Operator):
+    bl_idname = "asset_wrapper.open_library_folder"
     bl_label = "Open Library Folder"
-    bl_description = "Open the configured asset library folder"
+    bl_description = "Open the configured asset library folder in your file browser"
 
     def execute(self, context):
         directory = asset_io.asset_library_dir_from_settings(context)
@@ -289,8 +286,47 @@ class AM_OT_open_asset_library_folder(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AM_OT_remove_asset_file(bpy.types.Operator):
-    bl_idname = "asset_master.remove_asset_file"
+class AW_OT_set_custom_folder(bpy.types.Operator):
+    bl_idname = "asset_wrapper.set_custom_folder"
+    bl_label = "Set Custom Folder"
+    bl_description = (
+        "Choose a custom asset library folder instead of the default "
+        "'asset_library' folder next to the .blend file"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    directory: bpy.props.StringProperty(subtype="DIR_PATH", options={"SKIP_SAVE"})
+
+    def invoke(self, context, event):
+        self.directory = context.scene.asset_wrapper.target_asset_library_dir
+        return context.window_manager.invoke_props_dialog(self, width=520)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Custom asset library folder:")
+        layout.prop(self, "directory", text="")
+        layout.label(text="Leave empty to use the default folder next to the file.")
+
+    def execute(self, context):
+        context.scene.asset_wrapper.target_asset_library_dir = self.directory.strip()
+        refresh_library_items(context)
+        return {"FINISHED"}
+
+
+class AW_OT_reset_folder(bpy.types.Operator):
+    bl_idname = "asset_wrapper.reset_folder"
+    bl_label = "Use Default Folder"
+    bl_description = "Clear the custom folder and use the default 'asset_library' folder"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        context.scene.asset_wrapper.target_asset_library_dir = ""
+        refresh_library_items(context)
+        return {"FINISHED"}
+
+
+class AW_OT_remove_asset_file(bpy.types.Operator):
+    bl_idname = "asset_wrapper.remove_asset_file"
     bl_label = "Remove Asset File"
     bl_description = "Delete the selected asset .blend file from the asset library"
     bl_options = {"REGISTER"}
@@ -299,7 +335,7 @@ class AM_OT_remove_asset_file(bpy.types.Operator):
     filepath: bpy.props.StringProperty(subtype="FILE_PATH", options={"SKIP_SAVE"})
 
     def invoke(self, context, event):
-        item = active_asset_library_item(context)
+        item = active_library_item(context)
         if item is None:
             self.report({"ERROR"}, "Select an asset file first.")
             return {"CANCELLED"}
@@ -322,7 +358,7 @@ class AM_OT_remove_asset_file(bpy.types.Operator):
 
         try:
             deleted = asset_io.delete_asset_file(self.filepath, directory)
-            count = refresh_asset_library_items(context)
+            count = refresh_library_items(context)
             asset_io.refresh_asset_browsers(context)
         except Exception as exc:
             self.report({"ERROR"}, str(exc))
@@ -335,9 +371,9 @@ class AM_OT_remove_asset_file(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AM_OT_disconnect_asset_library(bpy.types.Operator):
-    bl_idname = "asset_master.disconnect_asset_library"
-    bl_label = "Disconnect Asset Library"
+class AW_OT_disconnect_library(bpy.types.Operator):
+    bl_idname = "asset_wrapper.disconnect_library"
+    bl_label = "Disconnect Library"
     bl_description = "Remove the configured folder from Blender's asset libraries"
     bl_options = {"REGISTER"}
 
@@ -372,10 +408,10 @@ class AM_OT_disconnect_asset_library(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AM_OT_delete_asset_library(bpy.types.Operator):
-    bl_idname = "asset_master.delete_asset_library"
-    bl_label = "Delete Asset Library"
-    bl_description = "Disconnect and delete the configured asset library folder"
+class AW_OT_delete_library(bpy.types.Operator):
+    bl_idname = "asset_wrapper.delete_library"
+    bl_label = "Delete Library Folder"
+    bl_description = "Disconnect and delete the configured asset library folder from disk"
     bl_options = {"REGISTER"}
 
     directory: bpy.props.StringProperty(subtype="DIR_PATH", options={"SKIP_SAVE"})
@@ -398,8 +434,8 @@ class AM_OT_delete_asset_library(bpy.types.Operator):
         try:
             asset_io.disconnect_asset_library(self.directory)
             asset_io.delete_asset_library_directory(self.directory)
-            context.scene.am_collectionize.asset_library_items.clear()
-            context.scene.am_collectionize.active_asset_library_item_index = 0
+            context.scene.asset_wrapper.asset_library_items.clear()
+            context.scene.asset_wrapper.active_asset_library_item_index = 0
             asset_io.refresh_asset_browsers(context)
         except Exception as exc:
             self.report({"ERROR"}, str(exc))
