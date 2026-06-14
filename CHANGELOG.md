@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.5 — 2026-06-12
+
+### Added
+- **Rename assets** — a pencil button in the Asset Library panel renames the
+  selected asset: its `.blend` file, the collection inside it (so the Asset
+  Browser updates), and any linked instances placed in the current scene, all
+  in one step. The rendered thumbnail and asset metadata are preserved.
+- **Batch rename** — from the library ▾ menu: find & replace, add prefix, or
+  add suffix across every asset in the library, with a live preview of what
+  will change.
+
+### Notes
+- Renames release the affected libraries first so the files can be rewritten
+  reliably while still linked in the open scene, and clean up Blender's
+  `.blend1` backups. Linked instances in *other* already-saved project files
+  still reference the old name and would need re-pointing there.
+
 ## 0.5.4 — 2026-06-12
 
 ### Fixed

@@ -39,6 +39,9 @@ class AW_MT_library(bpy.types.Menu):
         layout.operator("asset_wrapper.open_library_folder", icon="FILE_FOLDER")
 
         layout.separator()
+        layout.operator("asset_wrapper.batch_rename", icon="SORTALPHA")
+
+        layout.separator()
         layout.operator("asset_wrapper.set_custom_folder", icon="FILEBROWSER")
         if settings.target_asset_library_dir.strip():
             layout.operator("asset_wrapper.reset_folder", icon="LOOP_BACK")
@@ -122,8 +125,12 @@ class AW_PT_library(bpy.types.Panel):
 
         side = body.column(align=True)
         side.operator("asset_wrapper.refresh_library", text="", icon="FILE_REFRESH")
+        has_assets = bool(settings.asset_library_items)
+        rename = side.row(align=True)
+        rename.enabled = has_assets
+        rename.operator("asset_wrapper.rename_asset", text="", icon="GREASEPENCIL")
         remove = side.row(align=True)
-        remove.enabled = bool(settings.asset_library_items)
+        remove.enabled = has_assets
         remove.operator("asset_wrapper.remove_asset_file", text="", icon="TRASH")
 
         if not settings.asset_library_items:

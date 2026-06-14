@@ -443,3 +443,198 @@ class AW_OT_delete_library(bpy.types.Operator):
 
         self.report({"INFO"}, "Asset library disconnected and deleted.")
         return {"FINISHED"}
+
+
+class AW_OT_rename_asset(bpy.types.Operator):
+    bl_idname = "asset_wrapper.rename_asset"
+    bl_label = "Rename Asset"
+    bl_description = (
+        "Rename the selected asset: its file, the collection inside it, and any "
+        "linked instances placed in this scene"
+    )
+    bl_options = {"REGISTER"}
+
+    new_name: bpy.props.StringProperty(name="New Name", default="")
+
+    @classmethod
+    def poll(cls, context):
+        return bool(context.scene.asset_wrapper.asset_library_items)
+
+    def invoke(self, context, event):
+        item = active_library_item(context)
+        if item is None:
+            self.report({"ERROR"}, "Select an asset first.")
+            return {"CANCELLED"}
+        self.new_name = item.name
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        item = active_library_item(context)
+        layout = self.layout
+        if item is not None:
+            layout.label(text=f"Rename '{item.name}'", icon="OUTLINER_OB_GROUP_INSTANCE")
+        layout.prop(self, "new_name")
+
+    def execute(self, context):
+        directory = asset_io.asset_library_dir_from_settings(context)
+        if not directory:
+            self.report({"ERROR"}, "Asset library folder is not configured.")
+            return {"CANCELLED"}
+
+        item = active_library_item(context)
+        if item is None:
+            self.report({"ERROR"}, "Select an asset first.")
+            return {"CANCELLED"}
+
+        old_name = item.name
+        new_name = asset_io.sanitize_name(self.new_name)
+
+        if new_name == old_name:
+            self.report({"INFO"}, "Name unchanged.")
+            return {"CANCELLED"}
+
+        if asset_io.asset_file_exists(directory, new_name):
+            self.report({"ERROR"}, f"An asset named '{new_name}' already exists.")
+            return {"CANCELLED"}
+
+        try:
+            renamed, instances = asset_io.rename_asset(
+                context, directory, old_name, new_name
+            )
+        except Exception as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+
+        if not renamed:
+            self.report({"ERROR"}, f"Could not rename '{old_name}'.")
+            return {"CANCELLED"}
+
+        refresh_library_items(context)
+        _select_asset_by_name(context, new_name)
+        asset_io.refresh_asset_browsers(context)
+        self.report(
+            {"INFO"},
+            f"Renamed '{old_name}' to '{new_name}' "
+            f"({instances} scene instance(s) updated).",
+        )
+        return {"FINISHED"}
+
+
+class AW_OT_batch_rename(bpy.types.Operator):
+    bl_idname = "asset_wrapper.batch_rename"
+    bl_label = "Batch Rename Assets"
+    bl_description = "Rename every asset in the library by find & replace, prefix, or suffix"
+    bl_options = {"REGISTER"}
+
+    mode: bpy.props.EnumProperty(
+        name="Mode",
+        items=(
+            ("REPLACE", "Find & Replace", "Replace text within asset names"),
+            ("PREFIX", "Add Prefix", "Add text to the start of every name"),
+            ("SUFFIX", "Add Suffix", "Add text to the end of every name"),
+        ),
+        default="REPLACE",
+    )
+    find: bpy.props.StringProperty(name="Find", default="")
+    replace: bpy.props.StringProperty(name="Replace", default="")
+    affix: bpy.props.StringProperty(name="Text", default="")
+
+    @classmethod
+    def poll(cls, context):
+        return bool(context.scene.asset_wrapper.asset_library_items)
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=440)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "mode")
+        if self.mode == "REPLACE":
+            layout.prop(self, "find")
+            layout.prop(self, "replace")
+        else:
+            layout.prop(self, "affix")
+
+        renames = self._compute(context)
+        box = layout.box()
+        if not renames:
+            box.label(text="No assets will change.", icon="INFO")
+            return
+        box.label(text=f"{len(renames)} asset(s) will change:", icon="FILE_REFRESH")
+        for old_name, new_name in renames[:8]:
+            box.label(text=f"{old_name}   →   {new_name}")
+        if len(renames) > 8:
+            box.label(text=f"…and {len(renames) - 8} more")
+
+    def _new_name(self, old_name):
+        if self.mode == "REPLACE":
+            return old_name.replace(self.find, self.replace) if self.find else old_name
+        if self.mode == "PREFIX":
+            return f"{self.affix}{old_name}"
+        if self.mode == "SUFFIX":
+            return f"{old_name}{self.affix}"
+        return old_name
+
+    def _compute(self, context):
+        settings = context.scene.asset_wrapper
+        directory = asset_io.asset_library_dir_from_settings(context)
+        if not directory:
+            return []
+
+        existing = {item.name for item in settings.asset_library_items}
+        renames = []
+        seen_new = set()
+
+        for item in settings.asset_library_items:
+            old_name = item.name
+            new_name = asset_io.sanitize_name(self._new_name(old_name))
+            if not new_name or new_name == old_name:
+                continue
+            # Skip names that would clash with another asset or another rename.
+            if new_name in seen_new:
+                continue
+            if new_name in existing and new_name not in {o for o, _ in renames}:
+                continue
+            if asset_io.asset_file_exists(directory, new_name) and new_name not in {
+                o for o, _ in renames
+            }:
+                continue
+            seen_new.add(new_name)
+            renames.append((old_name, new_name))
+
+        return renames
+
+    def execute(self, context):
+        directory = asset_io.asset_library_dir_from_settings(context)
+        if not directory:
+            self.report({"ERROR"}, "Asset library folder is not configured.")
+            return {"CANCELLED"}
+
+        # Operate on the current contents of the folder, not a stale list.
+        refresh_library_items(context)
+        renames = self._compute(context)
+        if not renames:
+            self.report({"INFO"}, "No assets to rename.")
+            return {"CANCELLED"}
+
+        try:
+            done, instances = asset_io.rename_assets(context, directory, renames)
+        except Exception as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+
+        refresh_library_items(context)
+        asset_io.refresh_asset_browsers(context)
+        self.report(
+            {"INFO"},
+            f"Renamed {len(done)} asset(s), updated {instances} scene instance(s).",
+        )
+        return {"FINISHED"}
+
+
+def _select_asset_by_name(context, name):
+    settings = context.scene.asset_wrapper
+    for index, item in enumerate(settings.asset_library_items):
+        if item.name == name:
+            settings.active_asset_library_item_index = index
+            return

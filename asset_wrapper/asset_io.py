@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import re
@@ -162,6 +163,195 @@ def delete_asset_library_directory(directory):
 
     if os.path.isdir(directory):
         shutil.rmtree(directory)
+
+
+def asset_file_exists(directory, name):
+    return os.path.isfile(asset_filepath(directory, name))
+
+
+def rename_asset(context, directory, old_name, new_name):
+    """Rename one asset (file + inner collection) and re-point this scene's
+    linked instances. Returns (success, instance_count)."""
+    done, instances = _rename_many(context, directory, [(old_name, new_name)])
+    return bool(done), instances
+
+
+def rename_assets(context, directory, renames):
+    """Batch variant of rename_asset. Returns (completed_renames, total_instances)."""
+    return _rename_many(context, directory, renames)
+
+
+def _rename_many(context, directory, renames):
+    # Snapshot which scene instances point at each asset BEFORE touching disk,
+    # then drop those linked libraries so the headless rename helper can open
+    # the files without contending with this session's open file handles
+    # (renaming a file that is still linked here is unreliable on Windows).
+    snapshots = {}
+    libraries_to_release = set()
+
+    for old_name, new_name in renames:
+        old_norm = _normalized_path(bpy.path.abspath(asset_filepath(directory, old_name)))
+        instances = []
+        for obj in bpy.data.objects:
+            collection = obj.instance_collection
+            if (
+                obj.instance_type == "COLLECTION"
+                and collection is not None
+                and collection.library is not None
+                and _normalized_path(bpy.path.abspath(collection.library.filepath)) == old_norm
+            ):
+                instances.append(obj)
+                libraries_to_release.add(collection.library)
+        snapshots[old_name] = instances
+
+    for library in tuple(libraries_to_release):
+        try:
+            bpy.data.libraries.remove(library)
+        except Exception as exc:
+            print(f"Asset Wrapper: could not release library {library.filepath}: {exc}")
+
+    done = rename_assets_on_disk(directory, renames)
+    done_map = dict(done)
+
+    total_instances = 0
+    for old_name, new_name in renames:
+        instances = snapshots.get(old_name, [])
+        renamed = done_map.get(old_name) == new_name
+
+        # Re-point instances to the renamed asset, or back to the original file
+        # if the rename did not complete (so nothing is left dangling).
+        target_name = new_name if renamed else old_name
+        if instances:
+            target_collection = link_collection_from_asset(
+                asset_filepath(directory, target_name), target_name
+            )
+            for obj in instances:
+                obj.instance_collection = target_collection
+                if renamed:
+                    if obj.name == old_name:
+                        obj.name = new_name
+                    elif obj.name.startswith(old_name):
+                        obj.name = new_name + obj.name[len(old_name):]
+                    total_instances += 1
+
+        if renamed:
+            _remove_asset_file_quiet(directory, old_name)
+
+    return done, total_instances
+
+
+def rename_assets_on_disk(directory, renames):
+    """Rename each asset's .blend file and the asset collection inside it via a
+    blocking, headless Blender (so the stored preview and asset metadata are
+    preserved). `renames` is a list of (old_name, new_name). Returns the list
+    of (old_name, new_name) that completed."""
+    binary_path = bpy.app.binary_path
+    if not binary_path or not os.path.exists(binary_path):
+        raise ValueError("Could not locate the Blender executable for renaming.")
+
+    jobs = []
+    for old_name, new_name in renames:
+        if not new_name or new_name == old_name:
+            continue
+        jobs.append(
+            [
+                asset_filepath(directory, old_name),
+                asset_filepath(directory, new_name),
+                old_name,
+                new_name,
+            ]
+        )
+
+    if not jobs:
+        return []
+
+    script = r'''
+import bpy, os, json, sys
+
+jobs = json.loads(sys.argv[-1])
+# No .blend1 backups for these throwaway saves.
+bpy.context.preferences.filepaths.save_version = 0
+done = []
+for old_path, new_path, old_name, new_name in jobs:
+    try:
+        if not os.path.exists(old_path):
+            continue
+        bpy.ops.wm.open_mainfile(filepath=old_path, load_ui=False)
+        col = bpy.data.collections.get(old_name)
+        if col is None:
+            marked = [c for c in bpy.data.collections if c.asset_data]
+            col = marked[0] if marked else None
+        if col is None:
+            continue
+        col.name = new_name
+        # copy=True writes new_path without making it the active file or
+        # creating a .blend1 backup of the source.
+        bpy.ops.wm.save_as_mainfile(filepath=new_path, compress=True, copy=True)
+        done.append([old_name, new_name])
+    except Exception as exc:
+        print("AW_RENAME_ERROR", old_name, repr(exc))
+print("AW_RENAME_DONE " + json.dumps(done))
+'''
+
+    handle = tempfile.NamedTemporaryFile(
+        mode="w", suffix="_aw_rename.py", encoding="utf-8", delete=False
+    )
+    script_path = handle.name
+    with handle:
+        handle.write(script)
+
+    try:
+        proc = subprocess.run(
+            [
+                binary_path,
+                "--background",
+                "--factory-startup",
+                "--python",
+                script_path,
+                "--",
+                json.dumps(jobs),
+            ],
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+    finally:
+        try:
+            os.remove(script_path)
+        except OSError:
+            pass
+
+    done = None
+    for line in (proc.stdout or "").splitlines():
+        if line.startswith("AW_RENAME_DONE "):
+            done = [tuple(pair) for pair in json.loads(line[len("AW_RENAME_DONE "):])]
+            break
+
+    if done is None:
+        raise ValueError(
+            "Rename helper did not finish:\n"
+            + (proc.stdout or "")
+            + (proc.stderr or "")
+        )
+
+    if len(done) < len(jobs):
+        # Surface skipped/failed renames to the system console.
+        print("Asset Wrapper: some assets were not renamed.\n" + (proc.stdout or ""))
+
+    return done
+
+
+def _remove_asset_file_quiet(directory, name):
+    path = asset_filepath(directory, name)
+    try:
+        _ensure_inside_directory(path, directory)
+        # Also clear any .blend1/.blend2 backups Blender may have left behind.
+        for extra in (path, path + "1", path + "2"):
+            if os.path.isfile(extra):
+                os.remove(extra)
+    except Exception as exc:
+        print(f"Asset Wrapper: could not remove old asset file {path}: {exc}")
 
 
 def _save_user_preferences():

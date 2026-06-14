@@ -4,7 +4,7 @@
 bl_info = {
     "name": "Asset Wrapper",
     "author": "Blue Moon Virtual",
-    "version": (0, 5, 4),
+    "version": (0, 5, 5),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Asset Wrapper",
     "description": (
@@ -27,6 +27,8 @@ classes = (
     operators.AW_OT_refresh_library,
     operators.AW_OT_open_library_folder,
     operators.AW_OT_remove_asset_file,
+    operators.AW_OT_rename_asset,
+    operators.AW_OT_batch_rename,
     operators.AW_OT_set_custom_folder,
     operators.AW_OT_reset_folder,
     operators.AW_OT_disconnect_library,
