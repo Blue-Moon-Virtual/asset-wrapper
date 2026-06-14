@@ -390,6 +390,42 @@ print("AW_RENAME_DONE " + json.dumps(done))
     return done
 
 
+def launch_asset_editor(filepath):
+    """Open an asset .blend in a separate Blender window for editing, with a
+    helper script that links the collection into view and adds a one-click
+    'Render Thumbnail & Save' button."""
+    binary_path = bpy.app.binary_path
+    if not binary_path or not os.path.exists(binary_path):
+        return False
+
+    target = os.path.abspath(bpy.path.abspath(filepath))
+    if not os.path.isfile(target):
+        return False
+
+    helper = os.path.join(os.path.dirname(__file__), "edit_helper.py")
+    try:
+        subprocess.Popen([binary_path, target, "--python", helper])
+        return True
+    except Exception as exc:
+        print(f"Asset Wrapper: could not launch asset editor: {exc}")
+        return False
+
+
+def reload_asset_libraries(context):
+    """Reload linked asset .blend libraries so external edits show up in the
+    current project without reopening it. Returns the number reloaded."""
+    count = 0
+    for library in bpy.data.libraries:
+        base = library.filepath.replace("\\", "/").rstrip("/").split("/")[-1]
+        if base.endswith(ASSET_FILE_SUFFIX):
+            try:
+                library.reload()
+                count += 1
+            except Exception as exc:
+                print(f"Asset Wrapper: could not reload {base}: {exc}")
+    return count
+
+
 def _remove_asset_file_quiet(directory, name):
     path = asset_filepath(directory, name)
     try:

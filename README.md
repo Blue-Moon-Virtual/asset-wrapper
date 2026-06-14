@@ -21,6 +21,7 @@ Blender's Asset Browser is great at *placing* assets and clumsy at *making* them
 - **Re-wrap** under the same name to update every placed instance at once
 - **Rename & batch-rename** assets (file, collection, and linked instances) without breaking links
 - **Project tags & catalogues** — tag a project so its assets are prefixed and filed in their own catalogue; keeps projects that share one library folder from colliding
+- **Edit assets in place** — open an asset in its own window, tweak it, and every project that links it updates on reload
 - **In-viewport library browser** — list, open, and clean up project assets
 - **One-click updates** from the add-on preferences
 

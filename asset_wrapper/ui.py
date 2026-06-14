@@ -36,6 +36,7 @@ class AW_MT_library(bpy.types.Menu):
         settings = context.scene.asset_wrapper
 
         layout.operator("asset_wrapper.refresh_library", icon="FILE_REFRESH")
+        layout.operator("asset_wrapper.reload_libraries", icon="LINKED")
         layout.operator("asset_wrapper.open_library_folder", icon="FILE_FOLDER")
 
         layout.separator()
@@ -134,5 +135,14 @@ class AW_PT_library(bpy.types.Panel):
         remove.enabled = has_assets
         remove.operator("asset_wrapper.remove_asset_file", text="", icon="TRASH")
 
+        edit = layout.row(align=True)
+        edit.enabled = has_assets
+        edit.scale_y = 1.3
+        edit.operator("asset_wrapper.edit_asset", icon="GREASEPENCIL")
+
         if not settings.asset_library_items:
             layout.label(text="No assets yet — wrap a selection", icon="INFO")
+        else:
+            hint = layout.row()
+            hint.enabled = False
+            hint.label(text="Edit → save → Reload (▾ menu)")

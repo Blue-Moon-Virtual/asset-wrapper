@@ -341,6 +341,51 @@ class AW_OT_reset_folder(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class AW_OT_edit_asset(bpy.types.Operator):
+    bl_idname = "asset_wrapper.edit_asset"
+    bl_label = "Edit Asset"
+    bl_description = (
+        "Open the selected asset in a separate Blender window for editing. "
+        "Saved changes apply to every project that links it after a reload"
+    )
+    bl_options = {"REGISTER"}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(context.scene.asset_wrapper.asset_library_items)
+
+    def execute(self, context):
+        item = active_library_item(context)
+        if item is None:
+            self.report({"ERROR"}, "Select an asset first.")
+            return {"CANCELLED"}
+
+        if not asset_io.launch_asset_editor(item.filepath):
+            self.report({"ERROR"}, "Could not open the asset for editing.")
+            return {"CANCELLED"}
+
+        self.report(
+            {"INFO"},
+            f"Opened '{item.name}' for editing. Save there, then Reload here.",
+        )
+        return {"FINISHED"}
+
+
+class AW_OT_reload_libraries(bpy.types.Operator):
+    bl_idname = "asset_wrapper.reload_libraries"
+    bl_label = "Reload Asset Libraries"
+    bl_description = (
+        "Reload linked assets so edits made to the asset files appear in this project"
+    )
+    bl_options = {"REGISTER"}
+
+    def execute(self, context):
+        count = asset_io.reload_asset_libraries(context)
+        asset_io.refresh_asset_browsers(context)
+        self.report({"INFO"}, f"Reloaded {count} linked asset(s).")
+        return {"FINISHED"}
+
+
 class AW_OT_remove_asset_file(bpy.types.Operator):
     bl_idname = "asset_wrapper.remove_asset_file"
     bl_label = "Remove Asset File"

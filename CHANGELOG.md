@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.0 — 2026-06-14
+
+### Added
+- **Edit Asset** — a button in the Asset Library panel opens the selected asset
+  in a separate Blender window for editing. The asset's collection is linked
+  into view automatically, and a one-click **Render Thumbnail & Save** button
+  refreshes the preview. Because assets are linked, saved edits apply to every
+  project that uses the asset.
+- **Reload Asset Libraries** (library ▾ menu) — pulls in edits made to asset
+  files without reopening the project.
+
 ## 0.6.0 — 2026-06-14
 
 ### Added
