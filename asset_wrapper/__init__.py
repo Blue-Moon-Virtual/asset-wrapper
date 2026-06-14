@@ -4,7 +4,7 @@
 bl_info = {
     "name": "Asset Wrapper",
     "author": "Blue Moon Virtual",
-    "version": (0, 5, 5),
+    "version": (0, 6, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Asset Wrapper",
     "description": (

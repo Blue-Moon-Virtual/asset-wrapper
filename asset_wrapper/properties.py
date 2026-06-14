@@ -28,6 +28,16 @@ class AssetWrapperSettings(bpy.types.PropertyGroup):
         default=False,
     )
 
+    project_tag: bpy.props.StringProperty(
+        name="Project",
+        description=(
+            "Optional project name. When set, new assets are named '<Project>_<name>' "
+            "and filed under a '<Project>' catalogue. This keeps several projects that "
+            "share one asset library folder from colliding on generic names"
+        ),
+        default="",
+    )
+
     asset_library_items: bpy.props.CollectionProperty(type=AWAssetLibraryItem)
 
     active_asset_library_item_index: bpy.props.IntProperty(

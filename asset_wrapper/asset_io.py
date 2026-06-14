@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 
 import bpy
 from bpy.app.handlers import persistent
@@ -167,6 +168,53 @@ def delete_asset_library_directory(directory):
 
 def asset_file_exists(directory, name):
     return os.path.isfile(asset_filepath(directory, name))
+
+
+def ensure_catalog(directory, catalog_path):
+    """Return the UUID of the *catalog_path* catalogue in this library's
+    blender_assets.cats.txt, creating the file/entry if needed."""
+    if not catalog_path:
+        return None
+
+    cats_file = os.path.join(directory, "blender_assets.cats.txt")
+    entries = []  # (uuid, path, simple_name)
+    by_path = {}
+
+    if os.path.isfile(cats_file):
+        with open(cats_file, encoding="utf-8") as handle:
+            for line in handle:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#") or stripped.startswith("VERSION"):
+                    continue
+                parts = stripped.split(":")
+                if len(parts) >= 2:
+                    simple = parts[2] if len(parts) > 2 else parts[1]
+                    entries.append((parts[0], parts[1], simple))
+                    by_path[parts[1]] = parts[0]
+
+    if catalog_path in by_path:
+        return by_path[catalog_path]
+
+    new_uuid = str(uuid.uuid4())
+    entries.append((new_uuid, catalog_path, catalog_path.replace("/", "-")))
+
+    lines = ["# This is an Asset Catalog Definition file for Blender.", "", "VERSION 1", ""]
+    lines.extend(f"{uid}:{path}:{simple}" for uid, path, simple in entries)
+    with open(cats_file, "w", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + "\n")
+
+    return new_uuid
+
+
+def apply_project_tag(name, tag):
+    """Prefix *name* with the sanitized project *tag* (idempotent)."""
+    tag = sanitize_name(tag) if tag else ""
+    if not tag:
+        return name, ""
+    prefix = f"{tag}_"
+    if name.startswith(prefix):
+        return name, tag
+    return f"{prefix}{name}", tag
 
 
 def rename_asset(context, directory, old_name, new_name):

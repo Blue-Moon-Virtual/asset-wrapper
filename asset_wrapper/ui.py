@@ -77,6 +77,7 @@ class AW_PT_main(bpy.types.Panel):
         ).source = "COLLECTION"
 
         layout.prop(settings, "use_cursor_pivot", icon="PIVOT_CURSOR")
+        layout.prop(settings, "project_tag", icon="ASSET_MANAGER")
 
         if context.mode != "OBJECT":
             layout.label(text="Object Mode required", icon="INFO")

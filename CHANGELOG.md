@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0 — 2026-06-14
+
+### Added
+- **Project tag** (per-scene). Set a Project name in the sidebar and new assets
+  are saved as `<Project>_<name>` and filed under a `<Project>` catalogue in the
+  Asset Browser. This stops several projects that share one `asset_library`
+  folder from colliding on generic names (e.g. two "BED"s overwriting each
+  other) — the root cause of cross-project asset mixing.
+- Auto-managed `blender_assets.cats.txt`: catalogues are created on demand.
+
+### Notes
+- Leave the Project field empty for the previous behaviour (no prefix, no
+  catalogue).
+
 ## 0.5.5 — 2026-06-12
 
 ### Added

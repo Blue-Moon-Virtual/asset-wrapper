@@ -99,9 +99,14 @@ class AW_OT_wrap(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
+        settings = context.scene.asset_wrapper
         layout.prop(self, "asset_name")
+        if settings.project_tag.strip():
+            tag = settings.project_tag.strip()
+            layout.label(text=f"Saved as: {tag}_{self.asset_name}", icon="ASSET_MANAGER")
         layout.prop(self, "replace_existing")
-        layout.prop(context.scene.asset_wrapper, "use_cursor_pivot")
+        layout.prop(settings, "use_cursor_pivot")
+        layout.prop(settings, "project_tag")
 
     def execute(self, context):
         try:
@@ -117,6 +122,11 @@ class AW_OT_wrap(bpy.types.Operator):
 
             requested_name = self.asset_name or (
                 source_collection.name if source_collection else objects[0].name
+            )
+            # Prefix with the project tag so projects sharing one library folder
+            # never collide on generic names (e.g. "BED" -> "Cozy_BED").
+            requested_name, project_tag = asset_io.apply_project_tag(
+                requested_name, settings.project_tag
             )
             asset_io.purge_unused_linked_asset_collections(asset_dir, requested_name)
 
@@ -148,6 +158,12 @@ class AW_OT_wrap(bpy.types.Operator):
             export_collection, created_objects, created_data, extra_dependencies = (
                 asset_io.create_export_collection(asset_name, objects, pivot_matrix)
             )
+
+            # File the asset under a per-project catalogue.
+            if project_tag and export_collection.asset_data is not None:
+                catalog_id = asset_io.ensure_catalog(asset_dir, project_tag)
+                if catalog_id:
+                    export_collection.asset_data.catalog_id = catalog_id
 
             try:
                 preview_png = asset_io.render_preview_png(export_collection)
