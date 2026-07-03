@@ -13,6 +13,9 @@ asset-master-test.blend
 asset_library/
 _test/
 
+# Local asset/project backups — huge .blend files, never push to GitHub
+_backup_HA/
+
 # Internal business strategy — kept local, not for the public repo
 LAUNCH_PLAN.md
 
